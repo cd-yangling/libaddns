@@ -1,0 +1,180 @@
+#!/bin/sh
+
+NR_keys=0
+
+hostname="alidns.aliyuncs.com"
+hostpath="/?"
+
+#
+# href: https://stackoverflow.com/questions/296536/how-to-urlencode-data-for-curl-command
+# href: https://gist.github.com/cdown/1163649
+#
+# @参数1: 准备进行 URI 编码的字符串
+#
+# 返回值: 编码完成的字符串
+#
+urlencode() {
+    local old_lc_collate=$LC_COLLATE
+
+    LC_COLLATE=C
+    
+    local length="${#1}"
+    for (( i = 0; i < length; i++ )); do
+        local c="${1:i:1}"
+        case $c in
+            [a-zA-Z0-9.~_-]) printf "$c" ;;
+#            *) printf "$c" | xxd -u -p -c1 | while read x;do printf "%%%s" "$x";done
+            *) printf '%%%02X' "'$c" ;;
+        esac
+    done
+
+    LC_COLLATE=$old_lc_collate
+}
+
+#
+# @参数1: Key
+# @参数2: Value
+#
+set_param()
+{
+  eval shrt_key_$NR_keys=$1
+  eval shrt_val_$1=$2
+  NR_keys=$((++NR_keys))
+}
+
+#
+#
+#  href: https://help.aliyun.com/document_detail/29747.html?spm=a2c4g.11186623.4.3.6ef97ebbHSzvzy
+#
+#  对参数进行排序并安装阿里云文档要求进行相应的签名处理
+#
+#  返回值: 签名后的字符串
+#
+calc_signature()
+{
+  # 对 key 进行排序放入 sorted_keys 数组
+  local sorted_keys=$(
+    i=0
+    while [ $i -lt $NR_keys ]
+    do
+      eval key=\$shrt_key_$i
+      echo $key
+      i=$((++i))
+    done | LC_COLLATE=C sort
+  )
+
+  # 组装签名字符串
+  local src_string=""
+
+  for key in $sorted_keys
+  do
+      eval val="\$shrt_val_$key"
+      val=$(urlencode $val)
+      src_string="$src_string$key=$val&"
+  done
+
+  # 删除行尾的 &
+  src_string=$(echo $src_string | sed 's/&$//g')
+
+  # 转义处理
+  src_string=$(urlencode $src_string)
+
+  # 拼接头部
+  src_string="GET&%2F&"$src_string
+
+  echo -n $src_string | openssl dgst -binary -sha1   -hmac "$AccessKeySecret&" | openssl enc | base64
+}
+
+#
+#  构建最终 curl 命令使用的请求 URL 字符串
+#
+build_final_url()
+{
+  local i=0
+  local url_string="https://$hostname$hostpath"
+
+  while [ $i -lt $NR_keys ]
+  do
+    eval key=\$shrt_key_$i
+    eval val=\$shrt_val_$key
+
+    key_enc=$(urlencode $key)
+    val_enc=$(urlencode $val)
+#    key_enc=`echo -n $key | perl -MURI::Escape -le 'print uri_escape <STDIN>'`
+#    val_enc=`echo -n $val | perl -MURI::Escape -le 'print uri_escape <STDIN>'`
+
+    url_string="$url_string$key_enc=$val_enc&"
+    i=$((++i))
+  done
+
+  # 删除行尾的 &
+  url_string=$(echo $url_string | sed 's/&$//g')
+
+  echo $url_string
+}
+
+#
+#  设置公共参数
+#
+set_pub_param()
+{
+  set_param "Format"           "JSON"
+  set_param "Version"          "2015-01-09"
+  set_param "AccessKeyId"      $AccessKeyId
+  set_param "SignatureMethod"  "HMAC-SHA1"
+  set_param "SignatureVersion" "1.0" 
+
+  local time_utc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+  set_param "Timestamp"        $time_utc
+
+  local rand_num=$(openssl rand -hex 16)
+  set_param "SignatureNonce"   $rand_num
+}
+
+#
+#  获取解析记录列表 ( DescribeDomainRecords ) 
+#
+#  参数1: domain
+#
+#  注意1: 需要 export AccessKeySecret & AccessKeyId 变量
+#
+#  返回v:  最终可以被用于 curl 或者 wget 发送 GET 请求的字符串
+#
+DescribeDomainRecords()
+{
+  set_pub_param
+
+  set_param "Action"     "DescribeDomainRecords"
+  set_param "DomainName" $1
+
+  set_param "Signature" $(calc_signature)
+
+  build_final_url
+}
+
+#
+#  修改解析记录 ( UpdateDomainRecord )
+#
+#  参数1: RR
+#  参数2: RecordId
+#  参数3: Type
+#  参数4: Value
+#
+#  注意1: 需要 export AccessKeySecret & AccessKeyId 变量
+#
+#  返回v:  最终可以被用于 curl 或者 wget 发送 GET 请求的字符串
+#
+UpdateDomainRecord()
+{
+  set_pub_param
+
+  set_param "Action"   "UpdateDomainRecord"
+  set_param "RR"       $1
+  set_param "RecordId" $2
+  set_param "Type"     $3
+  set_param "Value"    $4
+
+  set_param "Signature" $(calc_signature)
+
+  build_final_url
+}
