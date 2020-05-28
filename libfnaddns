@@ -178,3 +178,30 @@ UpdateDomainRecord()
 
   build_final_url
 }
+
+#
+#  添加解析记录 ( AddDomainRecord )
+#
+#  参数1: DomainName
+#  参数2: RR
+#  参数3: Type
+#  参数4: Value
+#
+#  注意1: 需要 export AccessKeySecret & AccessKeyId 变量
+#
+#  返回v:  最终可以被用于 curl 或者 wget 发送 GET 请求的字符串
+#
+AddDomainRecord()
+{
+  set_pub_param
+
+  set_param "Action"     "AddDomainRecord"
+  set_param "DomainName" $1
+  set_param "RR"         $2
+  set_param "Type"       $3
+  set_param "Value"      $4
+
+  set_param "Signature" $(calc_signature)
+
+  build_final_url
+}
