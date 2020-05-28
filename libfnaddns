@@ -227,3 +227,24 @@ DeleteDomainRecord()
   build_final_url
 }
 
+#
+#  获取解析记录信息 ( DescribeDomainRecordInfo )
+#
+#  参数1: RecordId
+#
+#  注意1: 需要 export AccessKeySecret & AccessKeyId 变量
+#
+#  返回v:  最终可以被用于 curl 或者 wget 发送 GET 请求的字符串
+#
+DescribeDomainRecordInfo()
+{
+  set_pub_param
+
+  set_param "Action"   "DescribeDomainRecordInfo"
+  set_param "RecordId" $1
+
+  set_param "Signature" $(calc_signature)
+
+  build_final_url
+}
+
