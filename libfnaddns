@@ -248,3 +248,26 @@ DescribeDomainRecordInfo()
   build_final_url
 }
 
+#
+#  设置解析记录状态 ( SetDomainRecordStatus )
+#
+#  参数1: RecordId
+#  参数2: Status
+#
+#  注意1: 需要 export AccessKeySecret & AccessKeyId 变量
+#
+#  返回v:  最终可以被用于 curl 或者 wget 发送 GET 请求的字符串
+#
+SetDomainRecordStatus()
+{
+  set_pub_param
+
+  set_param "Action"   "SetDomainRecordStatus"
+  set_param "RecordId" $1
+  set_param "Status"   $2
+
+  set_param "Signature" $(calc_signature)
+
+  build_final_url
+}
+
