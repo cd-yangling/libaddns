@@ -16,7 +16,7 @@
 ### 获取解析记录列表
 
 ```sh
-source "$(dirname $0)/libfntddns"
+source "$(dirname $0)/libfnaddns"
 export AccessKeySecret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 export AccessKeyId=yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
 curl -sS $(DescribeDomainRecords example.com)
@@ -25,7 +25,7 @@ curl -sS $(DescribeDomainRecords example.com)
 ### 修改解析记录
 
 ```sh
-source "$(dirname $0)/libfntddns"
+source "$(dirname $0)/libfnaddns"
 export AccessKeySecret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 export AccessKeyId=yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
 curl -sS $(UpdateDomainRecord www id A 202.106.0.20)
@@ -34,7 +34,7 @@ curl -sS $(UpdateDomainRecord www id A 202.106.0.20)
 ### 添加解析记录
 
 ```sh
-source "$(dirname $0)/libfntddns"
+source "$(dirname $0)/libfnaddns"
 export AccessKeySecret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 export AccessKeyId=yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
 curl -sS $(AddDomainRecord example.com www A 202.106.0.20)
@@ -43,7 +43,7 @@ curl -sS $(AddDomainRecord example.com www A 202.106.0.20)
 ### 删除解析记录
 
 ```sh
-source "$(dirname $0)/libfntddns"
+source "$(dirname $0)/libfnaddns"
 export AccessKeySecret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 export AccessKeyId=yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
 curl -sS $(DeleteDomainRecord id)
@@ -52,7 +52,7 @@ curl -sS $(DeleteDomainRecord id)
 ### 获取解析记录信息
 
 ```sh
-source "$(dirname $0)/libfntddns"
+source "$(dirname $0)/libfnaddns"
 export AccessKeySecret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 export AccessKeyId=yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
 curl -sS $(DescribeDomainRecordInfo id)
@@ -61,7 +61,7 @@ curl -sS $(DescribeDomainRecordInfo id)
 ### 设置解析记录状态
 
 ```sh
-source "$(dirname $0)/libfntddns"
+source "$(dirname $0)/libfnaddns"
 export AccessKeySecret=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 export AccessKeyId=yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
 curl -sS $(SetDomainRecordStatus id Enable/Disable)
